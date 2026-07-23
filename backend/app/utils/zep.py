@@ -63,7 +63,16 @@ def _cached_zep_client(api_key: str, timeout: float) -> Zep:
 
 
 def get_zep_client(api_key: str | None = None, timeout: float | None = None) -> Zep:
-    """Return a process-shared, explicitly configured Zep Cloud client."""
+    """Return a process-shared, explicitly configured Zep Cloud client.
+
+    When Config.GRAPH_BACKEND == "graphiti", returns a GraphitiShim that
+    exposes the same interface as the Zep Cloud SDK but delegates to a
+    local Graphiti + Neo4j + Ollama stack.
+    """
+
+    if Config.GRAPH_BACKEND == "graphiti":
+        from ..graphiti_shim.shim import GraphitiShim
+        return GraphitiShim()  # type: ignore[return-value]
 
     # zep-cloud gives ZEP_API_URL precedence even when base_url is explicit.
     # Reject it so this Cloud-only integration cannot silently target a
