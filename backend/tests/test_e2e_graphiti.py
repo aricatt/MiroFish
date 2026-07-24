@@ -17,6 +17,7 @@ os.environ["OLLAMA_MODEL"] = "qwen2.5:7b"
 os.environ["OLLAMA_EMBED_MODEL"] = "nomic-embed-text"
 os.environ["OLLAMA_EMBED_DIM"] = "768"
 os.environ["LLM_API_KEY"] = "ollama"
+os.environ["OPENAI_API_KEY"] = "ollama"  # Graphiti's reranker needs this
 
 # Load modules directly, bypassing app/__init__.py Flask import
 import importlib

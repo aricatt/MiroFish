@@ -18,7 +18,7 @@ from ..utils.logger import get_logger
 logger = get_logger('mirofish.graphiti_shim.graph_manager')
 
 _graphiti_instances: dict[str, Graphiti] = {}
-_lock = threading.Lock()
+_lock = threading.RLock()
 _event_loop: asyncio.AbstractEventLoop | None = None
 _loop_thread: threading.Thread | None = None
 _ontology_cache: dict[str, dict[str, Any]] = {}
@@ -78,12 +78,20 @@ def get_or_create_graphiti(graph_id: str):
             return _graphiti_instances[graph_id]
         logger.info('Creating Graphiti instance for graph_id=%s', graph_id)
         from graphiti_core import Graphiti
+        from graphiti_core.cross_encoder.openai_reranker_client import OpenAIRerankerClient
+        from graphiti_core.llm_client.config import LLMConfig
+        llm_config = LLMConfig(
+            api_key='ollama',
+            model=Config.OLLAMA_MODEL,
+            base_url=Config.OLLAMA_BASE_URL + '/v1',
+        )
         graphiti = Graphiti(
             uri=Config.NEO4J_URI,
             user=Config.NEO4J_USER,
             password=Config.NEO4J_PASSWORD,
             llm_client=_create_llm_client(),
             embedder=_create_embedder(),
+            cross_encoder=OpenAIRerankerClient(config=llm_config),
         )
         _run_async(graphiti.build_indices_and_constraints())
         _graphiti_instances[graph_id] = graphiti

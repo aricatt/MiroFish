@@ -10,24 +10,26 @@ from collections.abc import Iterable
 
 from openai import AsyncOpenAI
 
+from graphiti_core.embedder.client import EmbedderClient, EmbedderConfig
+
 from ..config import Config
 
 
-class OllamaEmbedderConfig:
+class OllamaEmbedderConfig(EmbedderConfig):
     """Configuration for the Ollama embedder."""
 
     def __init__(self, **kwargs):
-        self.embedding_dim = kwargs.pop('embedding_dim', Config.OLLAMA_EMBED_DIM)
-        self.embedding_model = kwargs.get('embedding_model', Config.OLLAMA_EMBED_MODEL)
-        self.api_key = kwargs.get('api_key', 'ollama')
-        self.base_url = kwargs.get('base_url', Config.OLLAMA_BASE_URL + '/v1')
+        super().__init__(
+            embedding_dim=kwargs.pop('embedding_dim', Config.OLLAMA_EMBED_DIM),
+        )
+        # Store as object attributes (not Pydantic fields, since EmbedderConfig is frozen)
+        object.__setattr__(self, 'embedding_model', kwargs.get('embedding_model', Config.OLLAMA_EMBED_MODEL))
+        object.__setattr__(self, 'api_key', kwargs.get('api_key', 'ollama'))
+        object.__setattr__(self, 'base_url', kwargs.get('base_url', Config.OLLAMA_BASE_URL + '/v1'))
 
 
-class OllamaEmbedder:
-    """Embedder that talks to Ollama's OpenAI-compatible embeddings endpoint.
-
-    Implements the graphiti_core.embedder.EmbedderClient interface.
-    """
+class OllamaEmbedder(EmbedderClient):
+    """Embedder that talks to Ollama's OpenAI-compatible embeddings endpoint."""
 
     def __init__(self, config: OllamaEmbedderConfig | None = None):
         if config is None:
