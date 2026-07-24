@@ -83,13 +83,16 @@ def test_config_validate_zep():
     """GRAPH_BACKEND=zep 时仍然要求 ZEP_API_KEY"""
     config = _load_config()
     Config = config.Config
-    original = Config.GRAPH_BACKEND
+    original_backend = Config.GRAPH_BACKEND
+    original_key = Config.ZEP_API_KEY
     try:
         Config.GRAPH_BACKEND = "zep"
+        Config.ZEP_API_KEY = None  # 模拟未配置
         errors = Config.validate()
         assert any("ZEP_API_KEY" in e for e in errors)
     finally:
-        Config.GRAPH_BACKEND = original
+        Config.GRAPH_BACKEND = original_backend
+        Config.ZEP_API_KEY = original_key
 
 
 # ── Shim 结构测试 ────────────────────────────────────────────────────
